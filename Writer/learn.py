@@ -83,16 +83,18 @@ def loss(responses, logits):
                                                            from_logits=True)
 
 
-def train_model(data, nc):
-    '''Train model with given training data
-    data: training data (tf.data.Dataset object)
-    nc: number of distinct characters
+def run():
 
-    The result of training is saved in checkpoint dir as weights.
-    The function doesn't return any object.
-    '''
+    # import training data
+    raw_data_chars, raw_data_ids, char_to_id, id_to_char = get_data(DATA_DIR)
+    n_chars = len(char_to_id)
+    print("number of distinct characters = {}".format(n_chars))
+
+    # preprocess data
+    ds_train = preprocess(raw_data_ids)
+
     # create model
-    model = build_model(n_chars=nc,
+    model = build_model(n_chars=n_chars,
                         emb_size=EMBEDDING_SIZE,
                         rnn_units=RNN_UNITS,
                         batch_size=BATCH_SIZE)
@@ -106,22 +108,8 @@ def train_model(data, nc):
         filepath=checkpoint_prefix, save_weights_only=True)
 
     # Execute training
-    model.fit(data, epochs=EPOCHS, callbacks=[checkpoint_callback])
+    model.fit(ds_train, epochs=EPOCHS, callbacks=[checkpoint_callback])
     model.summary()
-
-
-def run():
-
-    # import training data
-    raw_data_chars, raw_data_ids, char_to_id, id_to_char = get_data(DATA_DIR)
-    n_chars = len(char_to_id)
-    print("number of distinct characters = {}".format(n_chars))
-
-    # preprocess data
-    ds_train = preprocess(raw_data_ids)
-
-    # build and train model
-    train_model(ds_train, n_chars)
 
     # pickle
     pickle.dump(n_chars, open('n_chars.pk', 'wb'))
