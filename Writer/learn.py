@@ -62,20 +62,6 @@ def preprocess(d):
     return dataset
 
 
-def build_model(n_chars, emb_size, rnn_units, batch_size):
-    '''Define keras rnn model'''
-    return tf.keras.Sequential([
-        tf.keras.layers.Embedding(n_chars,
-                                  emb_size,
-                                  batch_input_shape=[batch_size, None]),
-        tf.keras.layers.LSTM(rnn_units,
-                             return_sequences=True,
-                             stateful=True,
-                             recurrent_initializer='glorot_uniform'),
-        tf.keras.layers.Dense(n_chars)
-    ])
-
-
 def loss(responses, logits):
     '''Loss function'''
     return tf.keras.losses.sparse_categorical_crossentropy(responses,
@@ -94,10 +80,16 @@ def run():
     ds_train = preprocess(raw_data_ids)
 
     # create model
-    model = build_model(n_chars=n_chars,
-                        emb_size=EMBEDDING_SIZE,
-                        rnn_units=RNN_UNITS,
-                        batch_size=BATCH_SIZE)
+    model = tf.keras.Sequential([
+        tf.keras.layers.Embedding(n_chars,
+                                  EMBEDDING_SIZE,
+                                  batch_input_shape=[BATCH_SIZE, None]),
+        tf.keras.layers.LSTM(RNN_UNITS,
+                             return_sequences=True,
+                             stateful=True,
+                             recurrent_initializer='glorot_uniform'),
+        tf.keras.layers.Dense(n_chars)
+    ])
 
     # compile model with optimizer and loss function
     model.compile(optimizer='adam', loss=loss)
