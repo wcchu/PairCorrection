@@ -11,8 +11,8 @@ EMBEDDING_SIZE = 128
 RNN_UNITS = 512
 
 # training
-DATA_DIR = "bible.txt"
-EPOCHS = 3
+DATA_DIR = "bible_1000.txt"  # TODO: change back to full data after development
+EPOCHS = 1  # TODO: change back to 3 after development
 TIME_STEPS = 200
 BATCH_SIZE = 64
 BUFFER_SIZE = 10000
