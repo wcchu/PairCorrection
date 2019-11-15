@@ -4,6 +4,7 @@ Build PairShift model with TensorFlow 2.0
 """
 
 import logging
+import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
 import tensorflow as tf
@@ -13,12 +14,12 @@ EPOCHS = 5
 
 
 def import_data(filename):
-    data = pd.read_csv(
-        filename, dtype={
-            'item1': str,
-            'item2': str,
-            'dif': float
-        })
+    data = pd.read_csv(filename,
+                       dtype={
+                           'item1': str,
+                           'item2': str,
+                           'dif': float
+                       })
     print("number of data points: {}".format(len(data)))
 
     # split training and evaluation data
@@ -49,11 +50,10 @@ def create_pair_model(columns):
     Define pair model
     '''
     model = PairModel(columns)
-    model.compile(
-        optimizer=tf.keras.optimizers.Ftrl(0.2),
-        loss='mse',
-        metrics=['mae', 'mse'],
-        run_eagerly=False)
+    model.compile(optimizer=tf.keras.optimizers.Ftrl(0.2),
+                  loss='mse',
+                  metrics=['mae', 'mse'],
+                  run_eagerly=False)
     return model
 
 
@@ -117,12 +117,14 @@ def run():
 
     # columns
     columns = {
-        'item1': tf.feature_column.indicator_column(
-            tf.feature_column.categorical_column_with_vocabulary_list(
-                'item1', vocabulary_list=items)),
-        'item2': tf.feature_column.indicator_column(
-            tf.feature_column.categorical_column_with_vocabulary_list(
-                'item2', vocabulary_list=items))
+        'item1':
+            tf.feature_column.indicator_column(
+                tf.feature_column.categorical_column_with_vocabulary_list(
+                    'item1', vocabulary_list=items)),
+        'item2':
+            tf.feature_column.indicator_column(
+                tf.feature_column.categorical_column_with_vocabulary_list(
+                    'item2', vocabulary_list=items))
     }
 
     # create model
@@ -135,11 +137,20 @@ def run():
     pair_model.summary()
 
     # directly get trained variables
-    variables = tf.reshape(
-        pair_model.trainable_variables, shape=[n_items]).numpy()
+    variables = tf.reshape(pair_model.trainable_variables,
+                           shape=[n_items]).numpy()
     item_coefficients = pd.DataFrame({'item': items, 'coefficient': variables})
     item_coefficients.to_csv('item_coefficients.csv', index=False)
 
+    # predict for each input item
+    inputs = {
+        'item1': np.array(items),
+        'item2': np.empty(len(items), dtype=str)
+    }
+    predictions = pair_model.predict(inputs)
+    print(predictions)
+
+    # create prediction model
     pred_model = PredModel(item_coefficients)
     tf.saved_model.save(pred_model, export_dir='saved_pred_model')
 
