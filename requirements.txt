@@ -1,12 +1,10 @@
+tensorflow==2.1.0
 numpy
 pandas
 sklearn
 scipy
-matplotlib
 flake8
 yapf
 cython
 testresources
-jupyter
-tensorflow
-Flask
+faker
